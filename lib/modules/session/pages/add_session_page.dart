@@ -3,6 +3,12 @@ import 'package:intl/intl.dart';
 
 import '../models/training_session.dart';
 import '../session_store.dart';
+import '../../training_type/models/training_type.dart';
+import '../../training_type/training_type_store.dart';
+import '../../training_type/widgets/training_type_form_sheet.dart';
+import '../../focus/models/focus_point.dart';
+import '../../focus/focus_store.dart';
+import '../../focus/widgets/focus_point_form_sheet.dart';
 
 class AddSessionPage extends StatefulWidget {
   const AddSessionPage({super.key});
@@ -16,8 +22,6 @@ class _AddSessionPageState extends State<AddSessionPage> {
 
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _sportTypeController = TextEditingController();
-  final _focusPointController = TextEditingController();
   final _notesController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
@@ -25,23 +29,10 @@ class _AddSessionPageState extends State<AddSessionPage> {
   double _frustrationScore = 3;
   double _fatigueScore = 4;
 
-  bool _isSaving = false;
+  TrainingType? _selectedTrainingType;
+  FocusPoint? _selectedFocusPoint;
 
-  final List<String> _commonSportTypes = const [
-    'Running',
-    'Swimming',
-    'Cycling',
-    'HIIT',
-    'Strength',
-    'Yoga',
-    'Basketball',
-    'Volleyball',
-    'Mobility',
-    'Stretching',
-    'Recovery',
-    'Walking',
-    'Rowing',
-  ];
+  bool _isSaving = false;
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -55,8 +46,241 @@ class _AddSessionPageState extends State<AddSessionPage> {
     }
   }
 
+  void _showTrainingTypePicker() {
+    final types = trainingTypeStore.all;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Select Training Type',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                if (types.isEmpty)
+                  _buildEmptyState(
+                    context,
+                    icon: Icons.sports,
+                    message: 'No training types yet. Create one to get started.',
+                    actionLabel: 'Create Training Type',
+                    onAction: () {
+                      Navigator.of(ctx).pop();
+                      _showCreateTrainingTypeForm();
+                    },
+                  )
+                else
+                  ...types.map((type) {
+                    return ListTile(
+                      leading: type.icon != null
+                          ? Icon(type.icon, color: type.color != null ? Color(type.color!) : null)
+                          : const Icon(Icons.sports),
+                      title: Text(type.name),
+                      trailing: _selectedTrainingType?.id == type.id
+                          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                          : null,
+                      onTap: () {
+                        setState(() => _selectedTrainingType = type);
+                        Navigator.of(ctx).pop();
+                      },
+                    );
+                  }),
+                if (types.isNotEmpty)
+                  ListTile(
+                    leading: const Icon(Icons.add),
+                    title: const Text('Create new type'),
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      _showCreateTrainingTypeForm();
+                    },
+                  ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFocusPointPicker() {
+    final points = focusStore.active;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Select Focus Point',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                if (points.isEmpty)
+                  _buildEmptyState(
+                    context,
+                    icon: Icons.center_focus_strong,
+                    message: 'No active focus points. Create one to track your goals.',
+                    actionLabel: 'Create Focus Point',
+                    onAction: () {
+                      Navigator.of(ctx).pop();
+                      _showCreateFocusPointForm();
+                    },
+                  )
+                else ...[
+                  ListTile(
+                    leading: const Icon(Icons.remove_circle_outline),
+                    title: const Text('No focus point'),
+                    trailing: _selectedFocusPoint == null
+                        ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                        : null,
+                    onTap: () {
+                      setState(() => _selectedFocusPoint = null);
+                      Navigator.of(ctx).pop();
+                    },
+                  ),
+                  ...points.map((fp) {
+                    return ListTile(
+                      leading: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: fp.color != null ? Color(fp.color!) : Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      title: Text(fp.title),
+                      trailing: _selectedFocusPoint?.id == fp.id
+                          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+                          : null,
+                      onTap: () {
+                        setState(() => _selectedFocusPoint = fp);
+                        Navigator.of(ctx).pop();
+                      },
+                    );
+                  }),
+                ],
+                if (points.isNotEmpty)
+                  ListTile(
+                    leading: const Icon(Icons.add),
+                    title: const Text('Create new focus point'),
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      _showCreateFocusPointForm();
+                    },
+                  ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showCreateTrainingTypeForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => const TrainingTypeFormSheet(),
+    );
+  }
+
+  void _showCreateFocusPointForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => const FocusPointFormSheet(),
+    );
+  }
+
+  Widget _buildEmptyState(
+    BuildContext context, {
+    required IconData icon,
+    required String message,
+    required String actionLabel,
+    required VoidCallback onAction,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          Icon(icon, size: 40, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: onAction,
+            icon: const Icon(Icons.add),
+            label: Text(actionLabel),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _saveSession() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedTrainingType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a training type')),
+      );
+      return;
+    }
 
     setState(() => _isSaving = true);
 
@@ -65,14 +289,10 @@ class _AddSessionPageState extends State<AddSessionPage> {
     final session = TrainingSession(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: _titleController.text.trim(),
-      sportType: _sportTypeController.text.trim().isEmpty
-          ? 'Other'
-          : _sportTypeController.text.trim(),
+      trainingType: _selectedTrainingType,
       date: _selectedDate,
       description: _descriptionController.text.trim(),
-      focusPoint: _focusPointController.text.trim().isEmpty
-          ? null
-          : _focusPointController.text.trim(),
+      focusPoint: _selectedFocusPoint,
       focusScore: _focusScore.round(),
       frustrationScore: _frustrationScore.round(),
       fatigueScore: _fatigueScore.round(),
@@ -141,8 +361,6 @@ class _AddSessionPageState extends State<AddSessionPage> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _sportTypeController.dispose();
-    _focusPointController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -186,33 +404,39 @@ class _AddSessionPageState extends State<AddSessionPage> {
             ),
             const SizedBox(height: 16),
 
-            // Sport type
-            TextFormField(
-              controller: _sportTypeController,
-              textCapitalization: TextCapitalization.words,
-              decoration: InputDecoration(
-                labelText: 'Sport type',
-                hintText: 'e.g. Running, Swimming',
-                prefixIcon: const Icon(Icons.sports),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            // Training type picker
+            InkWell(
+              onTap: _showTrainingTypePicker,
+              borderRadius: BorderRadius.circular(12),
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: 'Training type',
+                  hintText: 'Select a training type',
+                  prefixIcon: const Icon(Icons.sports),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _selectedTrainingType?.name ?? 'Select a training type',
+                        style: TextStyle(
+                          color: _selectedTrainingType != null
+                              ? colorScheme.onSurface
+                              : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                    if (_selectedTrainingType != null)
+                      GestureDetector(
+                        onTap: () => setState(() => _selectedTrainingType = null),
+                        child: Icon(Icons.clear, size: 18, color: Colors.grey[600]),
+                      ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: _commonSportTypes.map((type) {
-                return ActionChip(
-                  label: Text(type),
-                  backgroundColor: colorScheme.surfaceContainerHighest,
-                  side: BorderSide.none,
-                  onPressed: () {
-                    _sportTypeController.text = type;
-                  },
-                );
-              }).toList(),
             ),
             const SizedBox(height: 16),
 
@@ -257,17 +481,37 @@ class _AddSessionPageState extends State<AddSessionPage> {
             ),
             const SizedBox(height: 16),
 
-            // Focus point
-            TextFormField(
-              controller: _focusPointController,
-              textCapitalization: TextCapitalization.sentences,
-              maxLines: 2,
-              decoration: InputDecoration(
-                labelText: 'Focus point',
-                hintText: 'What was your main focus?',
-                prefixIcon: const Icon(Icons.center_focus_strong),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            // Focus point picker
+            InkWell(
+              onTap: _showFocusPointPicker,
+              borderRadius: BorderRadius.circular(12),
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: 'Focus point',
+                  hintText: 'Select a focus point',
+                  prefixIcon: const Icon(Icons.center_focus_strong),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _selectedFocusPoint?.title ?? 'Select a focus point (optional)',
+                        style: TextStyle(
+                          color: _selectedFocusPoint != null
+                              ? colorScheme.onSurface
+                              : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                    if (_selectedFocusPoint != null)
+                      GestureDetector(
+                        onTap: () => setState(() => _selectedFocusPoint = null),
+                        child: Icon(Icons.clear, size: 18, color: Colors.grey[600]),
+                      ),
+                  ],
                 ),
               ),
             ),

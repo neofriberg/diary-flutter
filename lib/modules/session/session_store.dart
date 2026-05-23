@@ -1,11 +1,10 @@
+import 'package:flutter/material.dart';
+
 import 'models/training_session.dart';
-import 'mock/mock_sessions.dart';
 
 /// Lightweight in-memory store for training sessions.
-///
-/// Pre-loaded with [mockSessions] for demo purposes.
-class SessionStore {
-  final List<TrainingSession> _entries = List.from(mockSessions);
+class SessionStore extends ChangeNotifier {
+  final List<TrainingSession> _entries = <TrainingSession>[];
 
   List<TrainingSession> get all => List.unmodifiable(_entries);
 
@@ -17,9 +16,41 @@ class SessionStore {
     }).toList();
   }
 
-  void add(TrainingSession session) => _entries.add(session);
+  void add(TrainingSession session) {
+    _entries.add(session);
+    notifyListeners();
+  }
 
-  void remove(String id) => _entries.removeWhere((s) => s.id == id);
+  void remove(String id) {
+    _entries.removeWhere((s) => s.id == id);
+    notifyListeners();
+  }
+
+  void update(TrainingSession session) {
+    final index = _entries.indexWhere((s) => s.id == session.id);
+    if (index != -1) {
+      _entries[index] = session;
+      notifyListeners();
+    }
+  }
+
+  /// Cascade helper: clears trainingType on a session (used by TrainingTypeStore).
+  void clearTrainingType(String sessionId) {
+    final index = _entries.indexWhere((s) => s.id == sessionId);
+    if (index != -1) {
+      _entries[index] = _entries[index].copyWith(trainingType: null);
+      notifyListeners();
+    }
+  }
+
+  /// Cascade helper: clears focusPoint on a session (used by FocusStore).
+  void clearFocusPoint(String sessionId) {
+    final index = _entries.indexWhere((s) => s.id == sessionId);
+    if (index != -1) {
+      _entries[index] = _entries[index].copyWith(focusPoint: null);
+      notifyListeners();
+    }
+  }
 }
 
 /// Shared singleton instance used across the app.

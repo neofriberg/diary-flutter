@@ -97,8 +97,11 @@ class _MonthViewState extends State<MonthView> {
     final monthTitle = DateFormat('MMMM yyyy').format(_focusedMonth);
     final isCurrentMonth = _focusedMonth.year == _today.year && _focusedMonth.month == _today.month;
 
-    return Column(
-      children: [
+    return AnimatedBuilder(
+      animation: sessionStore,
+      builder: (context, _) {
+        return Column(
+          children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Row(
@@ -279,9 +282,11 @@ class _MonthViewState extends State<MonthView> {
         ),
       ],
     );
-  }
+  },
+);
+}
 
-  void _showDaySessions(BuildContext context, DateTime date, List<TrainingSession> sessions) {
+void _showDaySessions(BuildContext context, DateTime date, List<TrainingSession> sessions) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -356,7 +361,7 @@ class _MonthViewState extends State<MonthView> {
                                       ),
                                     ),
                                   ),
-                                  if (session.sportType.isNotEmpty)
+                                  if (session.trainingType != null)
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
@@ -364,7 +369,7 @@ class _MonthViewState extends State<MonthView> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
-                                        session.sportType,
+                                        session.trainingType!.name,
                                         style: textTheme.labelSmall?.copyWith(
                                           color: colorScheme.primary,
                                           fontWeight: FontWeight.w600,

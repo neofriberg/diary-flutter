@@ -1,48 +1,29 @@
-/// Represents a single training / workout session.
-///
-/// Captures the core metadata (title, sport, date, description) alongside
-/// optional self-assessment scores and reflective notes.
+import '../../training_type/models/training_type.dart';
+import '../../focus/models/focus_point.dart';
+
 class TrainingSession {
   final String id;
-
-  /// Short title of the session, e.g. "Morning HIIT".
   final String title;
-
-  /// Sport or activity type, e.g. "Running", "Swimming", "Strength".
-  final String sportType;
-
-  /// The calendar date on which the session took place.
+  final TrainingType? trainingType;
   final DateTime date;
-
-  /// Free-form description of what was done.
+  final DateTime? startTime;
+  final Duration? duration;
   final String description;
-
-  /// The athlete's main focus point for this session.
-  final String? focusPoint;
-
-  /// Self-rated focus quality, 0–10.
+  final FocusPoint? focusPoint;
   final int? focusScore;
-
-  /// Self-rated frustration level, 0–10.
   final int? frustrationScore;
-
-  /// Self-rated fatigue level, 0–10.
   final int? fatigueScore;
-
-  /// Any additional reflective notes.
   final String? notes;
-
-  /// When this record was created in the app.
   final DateTime createdAt;
-
-  /// When this record was last updated.
   final DateTime? updatedAt;
 
   const TrainingSession({
     required this.id,
     required this.title,
-    required this.sportType,
+    this.trainingType,
     required this.date,
+    this.startTime,
+    this.duration,
     required this.description,
     this.focusPoint,
     this.focusScore,
@@ -52,4 +33,38 @@ class TrainingSession {
     required this.createdAt,
     this.updatedAt,
   });
+
+  TrainingSession copyWith({
+    String? id,
+    String? title,
+    TrainingType? trainingType,
+    DateTime? date,
+    DateTime? startTime,
+    Duration? duration,
+    String? description,
+    FocusPoint? focusPoint,
+    int? focusScore,
+    int? frustrationScore,
+    int? fatigueScore,
+    String? notes,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return TrainingSession(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      trainingType: trainingType ?? this.trainingType,
+      date: date ?? this.date,
+      startTime: startTime ?? this.startTime,
+      duration: duration ?? this.duration,
+      description: description ?? this.description,
+      focusPoint: focusPoint ?? this.focusPoint,
+      focusScore: focusScore ?? this.focusScore,
+      frustrationScore: frustrationScore ?? this.frustrationScore,
+      fatigueScore: fatigueScore ?? this.fatigueScore,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

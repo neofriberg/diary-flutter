@@ -236,7 +236,7 @@ class _WeekViewState extends State<WeekView> {
                                       children: [
                                         Row(
                                           children: [
-                                            if (session.sportType.isNotEmpty)
+                                            if (session.trainingType != null)
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -252,7 +252,7 @@ class _WeekViewState extends State<WeekView> {
                                                       BorderRadius.circular(8),
                                                 ),
                                                 child: Text(
-                                                  session.sportType,
+                                                  session.trainingType!.name,
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .labelSmall
@@ -265,7 +265,7 @@ class _WeekViewState extends State<WeekView> {
                                                             .onPrimaryContainer,
                                                       ),
                                                 ),
-                                            ),
+                                              ),
                                             Expanded(
                                               child: Text(
                                                 session.title,
@@ -280,9 +280,7 @@ class _WeekViewState extends State<WeekView> {
                                             ),
                                           ],
                                         ),
-                                        if (session.focusPoint != null &&
-                                            session.focusPoint!
-                                                .isNotEmpty) ...[
+                                        if (session.focusPoint != null) ...[
                                           const SizedBox(height: 8),
                                           Row(
                                             crossAxisAlignment:
@@ -298,7 +296,7 @@ class _WeekViewState extends State<WeekView> {
                                               const SizedBox(width: 6),
                                               Expanded(
                                                 child: Text(
-                                                  session.focusPoint!,
+                                                  session.focusPoint!.title,
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodySmall
@@ -398,10 +396,13 @@ class _WeekViewState extends State<WeekView> {
       );
     }).toList();
 
-    return ListView(
-      controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      children: [
+    return AnimatedBuilder(
+      animation: sessionStore,
+      builder: (context, _) {
+        return ListView(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          children: [
         Container(
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -450,8 +451,10 @@ class _WeekViewState extends State<WeekView> {
             ],
           ),
         ),
-        ...dayWidgets,
-      ],
+            ...dayWidgets,
+          ],
+        );
+      },
     );
   }
 
@@ -468,7 +471,7 @@ class _WeekViewState extends State<WeekView> {
         children: [
           const Divider(height: 1),
           const SizedBox(height: 12),
-          if (session.focusPoint != null && session.focusPoint!.isNotEmpty)
+          if (session.focusPoint != null)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(10),
@@ -488,7 +491,7 @@ class _WeekViewState extends State<WeekView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      session.focusPoint!,
+                      session.focusPoint!.title,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme

@@ -44,6 +44,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openProfile() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => const ProfilePage(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,17 +60,15 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const ProfilePage(),
-                ),
-              );
-            },
+            tooltip: 'Profile',
+            onPressed: _openProfile,
           ),
         ],
       ),
-      body: _pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddSession,
@@ -71,24 +77,28 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _NavItem(
-              icon: Icons.bar_chart,
-              label: 'Stats',
-              isSelected: _currentIndex == 0,
-              onTap: () => setState(() => _currentIndex = 0),
-            ),
-            const SizedBox(width: 48), // Space for FAB
-            _NavItem(
-              icon: Icons.calendar_month,
-              label: 'Calendar',
-              isSelected: _currentIndex == 1,
-              onTap: () => setState(() => _currentIndex = 1),
-            ),
-          ],
+        notchMargin: 6,
+        child: SizedBox(
+          height: kBottomNavigationBarHeight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _NavItem(
+                icon: Icons.bar_chart,
+                label: 'Stats',
+                isSelected: _currentIndex == 0,
+                onTap: () => setState(() => _currentIndex = 0),
+              ),
+              const SizedBox(width: 48), // Space for FAB notch
+              _NavItem(
+                icon: Icons.calendar_month,
+                label: 'Calendar',
+                isSelected: _currentIndex == 1,
+                onTap: () => setState(() => _currentIndex = 1),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -114,25 +124,29 @@ class _NavItem extends StatelessWidget {
         ? Theme.of(context).colorScheme.primary
         : Colors.grey;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
