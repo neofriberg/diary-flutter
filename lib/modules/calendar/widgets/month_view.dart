@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 
 import '../../session/session_store.dart';
 import '../../session/models/training_session.dart';
+import '../../focus/focus_store.dart';
+import '../../focus/models/focus_point.dart';
 import '../models/calendar_day.dart';
 
 class MonthView extends StatefulWidget {
@@ -98,7 +100,7 @@ class _MonthViewState extends State<MonthView> {
     final isCurrentMonth = _focusedMonth.year == _today.year && _focusedMonth.month == _today.month;
 
     return AnimatedBuilder(
-      animation: sessionStore,
+      animation: Listenable.merge([sessionStore, focusStore]),
       builder: (context, _) {
         return Column(
           children: [
@@ -190,6 +192,7 @@ class _MonthViewState extends State<MonthView> {
                     final isToday = _isSameDay(day.date, _today);
                     final sessions = _sessionsForDay(day.date);
                     final hasSessions = sessions.isNotEmpty;
+                    final activeFocuses = focusStore.activeOn(day.date);
 
                     return Padding(
                       padding: const EdgeInsets.all(3),
@@ -219,22 +222,43 @@ class _MonthViewState extends State<MonthView> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Align(
-                                  alignment: Alignment.topLeft,
-                                  child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(8, 6, 0, 0),
-                                    child: Text(
-                                      '${day.date.day}',
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
-                                        color: isToday
-                                            ? colorScheme.primary
-                                            : (day.isCurrentMonth
-                                                ? Colors.grey[850]
-                                                : Colors.grey[400]),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (activeFocuses.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(4, 3, 4, 2),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: activeFocuses.map((fp) {
+                                            return Container(
+                                              height: 3,
+                                              width: double.infinity,
+                                              margin: const EdgeInsets.only(bottom: 1),
+                                              decoration: BoxDecoration(
+                                                color: Color(fp.color ?? kDefaultFocusColor),
+                                                borderRadius: BorderRadius.circular(1.5),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(8, 4, 0, 0),
+                                      child: Text(
+                                        '${day.date.day}',
+                                        style: textTheme.bodySmall?.copyWith(
+                                          fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                                          color: isToday
+                                              ? colorScheme.primary
+                                              : (day.isCurrentMonth
+                                                  ? Colors.grey[850]
+                                                  : Colors.grey[400]),
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 8),

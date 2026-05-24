@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../../session/models/training_session.dart';
 
 /// Lightweight helper class for computing training statistics.
@@ -45,18 +47,25 @@ class TrainingStats {
     return map;
   }
 
-  Map<int, int> focusScoreDistribution() => _scoreDistribution((s) => s.focusScore);
-  Map<int, int> frustrationScoreDistribution() => _scoreDistribution((s) => s.frustrationScore);
-  Map<int, int> fatigueScoreDistribution() => _scoreDistribution((s) => s.fatigueScore);
-
-  Map<int, int> _scoreDistribution(int? Function(TrainingSession) extractor) {
-    final map = <int, int>{};
-    for (final s in allSessions) {
-      final score = extractor(s);
-      if (score != null) {
-        map[score] = (map[score] ?? 0) + 1;
-      }
-    }
-    return map;
+  // Reusable helpers for mean & standard deviation
+  ({double avg, double std})? _avgAndStd(int? Function(TrainingSession) extractor) {
+    final scores = allSessions.map(extractor).whereType<int>().toList();
+    if (scores.isEmpty) return null;
+    final sum = scores.fold<int>(0, (a, b) => a + b);
+    final mean = sum / scores.length;
+    final variance =
+        scores.fold<double>(0, (a, b) => a + (b - mean) * (b - mean)) /
+            scores.length;
+    final std = variance.isNaN || variance.isInfinite || variance <= 0
+        ? 0.0
+        : sqrt(variance);
+    return (avg: mean, std: std);
   }
+
+  ({double avg, double std})? get avgFocusScore => _avgAndStd((s) => s.focusScore);
+
+  ({double avg, double std})? get avgFrustrationScore =>
+      _avgAndStd((s) => s.frustrationScore);
+
+  ({double avg, double std})? get avgFatigueScore => _avgAndStd((s) => s.fatigueScore);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/utils/id_generator.dart';
 import '../models/training_type.dart';
 import '../training_type_store.dart';
 
@@ -91,7 +92,7 @@ class _TrainingTypeFormSheetState extends State<TrainingTypeFormSheet> {
       trainingTypeStore.update(updated);
     } else {
       final entity = TrainingType(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: generateId(),
         name: name,
         iconCodePoint: _selectedIcon?.codePoint,
         color: _selectedColor,

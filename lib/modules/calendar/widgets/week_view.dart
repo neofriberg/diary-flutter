@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 
 import '../../session/session_store.dart';
 import '../../session/models/training_session.dart';
+import '../../focus/focus_store.dart';
+import '../../focus/models/focus_point.dart';
 
 class WeekView extends StatefulWidget {
   const WeekView({super.key});
@@ -153,7 +155,7 @@ class _WeekViewState extends State<WeekView> {
 
       final sessions = _sessionsForDate(date);
 
-      Widget dayColumn = Column(
+      Widget dayContent = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -384,20 +386,51 @@ class _WeekViewState extends State<WeekView> {
         ],
       );
 
+      Widget dayRow = IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ListenableBuilder(
+              listenable: focusStore,
+              builder: (context, _) {
+                final activeFocuses = focusStore.activeOn(date);
+                if (activeFocuses.isEmpty) return const SizedBox.shrink();
+                return Row(
+                  children: [
+                    ...activeFocuses.map((fp) {
+                      return Container(
+                        width: 3,
+                        margin: const EdgeInsets.only(right: 1),
+                        decoration: BoxDecoration(
+                          color: Color(fp.color ?? kDefaultFocusColor),
+                          borderRadius: BorderRadius.circular(1.5),
+                        ),
+                      );
+                    }),
+                    const SizedBox(width: 6),
+                  ],
+                );
+              },
+            ),
+            Expanded(child: dayContent),
+          ],
+        ),
+      );
+
       if (isToday) {
-        dayColumn = Container(key: _todayKey, child: dayColumn);
+        dayRow = Container(key: _todayKey, child: dayRow);
       }
 
       return Padding(
         padding: EdgeInsets.only(
           bottom: index < weekDates.length - 1 ? 20 : 0,
         ),
-        child: dayColumn,
+        child: dayRow,
       );
     }).toList();
 
     return AnimatedBuilder(
-      animation: sessionStore,
+      animation: Listenable.merge([sessionStore, focusStore]),
       builder: (context, _) {
         return ListView(
           controller: _scrollController,

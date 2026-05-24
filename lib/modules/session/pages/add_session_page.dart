@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/utils/id_generator.dart';
 import '../models/training_session.dart';
 import '../session_store.dart';
 import '../../training_type/models/training_type.dart';
@@ -287,12 +288,12 @@ class _AddSessionPageState extends State<AddSessionPage> {
     await Future.delayed(const Duration(milliseconds: 300));
 
     final session = TrainingSession(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: generateId(),
       title: _titleController.text.trim(),
-      trainingType: _selectedTrainingType,
+      trainingTypeId: _selectedTrainingType?.id,
       date: _selectedDate,
       description: _descriptionController.text.trim(),
-      focusPoint: _selectedFocusPoint,
+      focusPointId: _selectedFocusPoint?.id,
       focusScore: _focusScore.round(),
       frustrationScore: _frustrationScore.round(),
       fatigueScore: _fatigueScore.round(),
@@ -302,7 +303,7 @@ class _AddSessionPageState extends State<AddSessionPage> {
       createdAt: DateTime.now(),
     );
 
-    sessionStore.add(session);
+    await sessionStore.add(session);
 
     if (mounted) {
       Navigator.of(context).pop(true);

@@ -25,14 +25,18 @@ class StatsPage extends StatelessWidget {
               // Overview
               _buildSectionCard(
                 context,
-                title: '📊 Overview',
+                icon: Icons.bar_chart,
+                title: 'Overview',
                 child: Column(
                   children: [
-                    _buildStatRow('Total sessions', '${stats.totalSessions}'),
+                    _buildStatRow(Icons.event_note, 'Total sessions',
+                        '${stats.totalSessions}'),
                     const Divider(height: 1),
-                    _buildStatRow('This week', '${stats.thisWeekCount}'),
+                    _buildStatRow(Icons.date_range, 'This week',
+                        '${stats.thisWeekCount}'),
                     const Divider(height: 1),
-                    _buildStatRow('This month', '${stats.thisMonthCount}'),
+                    _buildStatRow(Icons.calendar_month, 'This month',
+                        '${stats.thisMonthCount}'),
                   ],
                 ),
               ),
@@ -41,13 +45,18 @@ class StatsPage extends StatelessWidget {
               // By Training Type
               _buildSectionCard(
                 context,
-                title: '🏃 By Training Type',
+                icon: Icons.directions_run,
+                title: 'By Training Type',
                 child: Column(
                   children: byType.entries.map((entry) {
                     final pct = stats.totalSessions > 0
                         ? (entry.value / stats.totalSessions * 100).round()
                         : 0;
-                    return _buildStatRow(entry.key, '${entry.value}  ($pct%)');
+                    return _buildStatRow(
+                      Icons.fitness_center,
+                      entry.key,
+                      '${entry.value}  ($pct%)',
+                    );
                   }).toList(),
                 ),
               ),
@@ -56,41 +65,49 @@ class StatsPage extends StatelessWidget {
               // By Focus Point
               _buildSectionCard(
                 context,
-                title: '🎯 By Focus Point',
+                icon: Icons.track_changes,
+                title: 'By Focus Point',
                 child: Column(
                   children: byFocus.entries.map((entry) {
-                    return _buildStatRow(entry.key, '${entry.value}');
+                    return _buildStatRow(
+                      Icons.flag,
+                      entry.key,
+                      '${entry.value}',
+                    );
                   }).toList(),
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Score Distributions
+              // Averages & Standard Deviations
               _buildSectionCard(
                 context,
-                title: '📈 Score Distributions',
+                icon: Icons.analytics,
+                title: 'Score Averages',
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildDistributionBar(
+                    _buildScoreRow(
                       context,
+                      icon: Icons.psychology,
                       label: 'Focus',
-                      distribution: stats.focusScoreDistribution(),
                       color: Colors.green,
+                      result: stats.avgFocusScore,
                     ),
-                    const SizedBox(height: 20),
-                    _buildDistributionBar(
+                    const Divider(height: 1),
+                    _buildScoreRow(
                       context,
+                      icon: Icons.whatshot,
                       label: 'Frustration',
-                      distribution: stats.frustrationScoreDistribution(),
                       color: Colors.orange,
+                      result: stats.avgFrustrationScore,
                     ),
-                    const SizedBox(height: 20),
-                    _buildDistributionBar(
+                    const Divider(height: 1),
+                    _buildScoreRow(
                       context,
+                      icon: Icons.battery_unknown,
                       label: 'Fatigue',
-                      distribution: stats.fatigueScoreDistribution(),
                       color: Colors.redAccent,
+                      result: stats.avgFatigueScore,
                     ),
                   ],
                 ),
@@ -103,7 +120,12 @@ class StatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionCard(BuildContext context, {required String title, required Widget child}) {
+  Widget _buildSectionCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required Widget child,
+  }) {
     return Card(
       elevation: 2,
       shadowColor: Colors.black.withValues(alpha: 0.08),
@@ -113,11 +135,17 @@ class StatsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+            Row(
+              children: [
+                Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             child,
@@ -127,12 +155,13 @@ class StatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(String label, String value) {
+  Widget _buildStatRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Icon(icon, size: 18, color: Colors.grey[600]),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               label,
@@ -151,63 +180,41 @@ class StatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDistributionBar(
+  Widget _buildScoreRow(
     BuildContext context, {
+    required IconData icon,
     required String label,
-    required Map<int, int> distribution,
     required Color color,
+    required ({double avg, double std})? result,
   }) {
-    final maxCount = distribution.values.isEmpty ? 1 : distribution.values.reduce((a, b) => a > b ? a : b);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 15),
+            ),
+          ),
+          if (result == null)
+            Text(
+              'No data',
+              style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+            )
+          else
+            Text(
+              '${result.avg.toStringAsFixed(1)} ± ${result.std.toStringAsFixed(1)}',
+              style: TextStyle(
+                fontSize: 15,
                 fontWeight: FontWeight.w600,
+                color: color,
               ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: List.generate(11, (score) {
-            final count = distribution[score] ?? 0;
-            // ignore: unused_local_variable
-            final flex = maxCount == 0 ? 0 : count;
-            return Expanded(
-              child: Column(
-                children: [
-                  Container(
-                    height: 24,
-                    margin: const EdgeInsets.symmetric(horizontal: 1),
-                    decoration: BoxDecoration(
-                      color: count > 0 ? color.withValues(alpha: 0.8) : color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Center(
-                      child: Text(
-                        count > 0 ? '$count' : '',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: count > 0 ? Colors.white : Colors.transparent,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$score',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ),
-      ],
+            ),
+        ],
+      ),
     );
   }
 }

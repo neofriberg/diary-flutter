@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/utils/id_generator.dart';
 import '../models/focus_point.dart';
 import '../focus_store.dart';
 
@@ -119,7 +120,7 @@ class _FocusPointFormSheetState extends State<FocusPointFormSheet> {
       focusStore.update(updated);
     } else {
       final entity = FocusPoint(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: generateId(),
         title: title,
         description: description,
         startDate: _startDate,

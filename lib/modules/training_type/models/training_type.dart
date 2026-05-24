@@ -36,4 +36,22 @@ class TrainingType {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'iconCodePoint': iconCodePoint,
+        'color': color,
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  factory TrainingType.fromJson(Map<String, dynamic> json) {
+    return TrainingType(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      iconCodePoint: json['iconCodePoint'] as int?,
+      color: json['color'] as int?,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
 }

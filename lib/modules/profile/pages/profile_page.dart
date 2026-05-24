@@ -9,6 +9,7 @@ import '../../focus/models/focus_point.dart';
 import '../../focus/focus_store.dart';
 import '../../focus/pages/manage_focus_page.dart';
 import '../../focus/widgets/focus_point_form_sheet.dart';
+import '../profile_store.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -54,45 +55,51 @@ class ProfilePage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // User info placeholder
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 32,
-                            backgroundColor: colorScheme.primaryContainer,
-                            child: Icon(
-                              Icons.person,
-                              size: 32,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Athlete',
-                                  style: textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                  // User info
+                  AnimatedBuilder(
+                    animation: profileStore,
+                    builder: (context, _) {
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 32,
+                                backgroundColor: colorScheme.primaryContainer,
+                                child: Icon(
+                                  Icons.person,
+                                  size: 32,
+                                  color: colorScheme.primary,
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Keep building consistency',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey[600],
-                                  ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      profileStore.profile?.displayName ??
+                                          'Athlete',
+                                      style: textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Keep building consistency',
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
 

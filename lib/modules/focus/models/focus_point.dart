@@ -1,3 +1,5 @@
+const int kDefaultFocusColor = 0xFF1E88E5; // Material Blue 600
+
 /// A goal or theme a user wants to work on over a defined period.
 class FocusPoint {
   final String id;
@@ -30,6 +32,14 @@ class FocusPoint {
         now.isBefore(endDate.add(const Duration(days: 1)));
   }
 
+  /// True if the focus point is active on the given [date].
+  bool isActiveOn(DateTime date) {
+    final d = DateTime(date.year, date.month, date.day);
+    return isActive &&
+        !d.isBefore(DateTime(startDate.year, startDate.month, startDate.day)) &&
+        !d.isAfter(DateTime(endDate.year, endDate.month, endDate.day));
+  }
+
   FocusPoint copyWith({
     String? id,
     String? title,
@@ -51,6 +61,34 @@ class FocusPoint {
       color: color ?? this.color,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'description': description,
+        'startDate': startDate.toIso8601String(),
+        'endDate': endDate.toIso8601String(),
+        'isActive': isActive,
+        'color': color,
+        'createdAt': createdAt.toIso8601String(),
+        'updatedAt': updatedAt?.toIso8601String(),
+      };
+
+  factory FocusPoint.fromJson(Map<String, dynamic> json) {
+    return FocusPoint(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String?,
+      startDate: DateTime.parse(json['startDate'] as String),
+      endDate: DateTime.parse(json['endDate'] as String),
+      isActive: json['isActive'] as bool? ?? true,
+      color: json['color'] as int?,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
     );
   }
 }
